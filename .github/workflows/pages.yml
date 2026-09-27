@@ -1,0 +1,78 @@
+name: Publish website and refresh Scholar
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # Mondays, about 10:17 China Standard Time (GitHub may delay scheduled jobs).
+    - cron: '17 2 * * 1'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check the Scholar updater
+        run: python3 check_scholar.py
+      - name: Refresh public Scholar data
+        id: scholar
+        if: github.event_name != 'push'
+        continue-on-error: true
+        run: python3 scripts/update_scholar.py
+      - name: Report unavailable source
+        if: steps.scholar.outcome == 'failure'
+        run: |
+          echo '::warning::Google Scholar could not be updated. The last successful snapshot and its original date will remain visible.'
+          echo 'Scholar refresh failed; previous citation data retained. See the refresh step for details.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify website
+        run: |
+          python3 check_site.py
+          python3 check_scholar.py
+          node check_theme.cjs
+          node check_article_editor.cjs
+      - name: Save successful citation snapshot
+        if: steps.scholar.outcome == 'success'
+        run: |
+          git add assets/scholar/stats.json publications.html zh/publications.html
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'Update Google Scholar citation snapshot'
+            git push
+          fi
+      - uses: actions/configure-pages@v5
+      - name: Prepare public files
+        shell: python
+        run: |
+          from pathlib import Path
+          import shutil
+          target = Path('_site')
+          target.mkdir()
+          for source in Path('.').glob('*.html'):
+              if source.name != 'highlight-template.html':
+                  shutil.copy2(source, target / source.name)
+          for name in ('styles.css', 'theme.js', 'article-editor.js', 'favicon.svg'):
+              shutil.copy2(name, target / name)
+          shutil.copytree('zh', target / 'zh', ignore=shutil.ignore_patterns('highlight-template.html'))
+          shutil.copytree('assets', target / 'assets')
+          (target / '.nojekyll').touch()
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy website
+        id: deployment
+        uses: actions/deploy-pages@v4

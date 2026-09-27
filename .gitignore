@@ -1,0 +1,6 @@
+tmp/
+_site/
+__pycache__/
+*.pyc
+original/
+CONTENT_REVIEW.md
