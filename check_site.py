@@ -2,6 +2,10 @@
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlsplit, unquote
+from scripts.update_search_metadata import page_url
+import json
+import re
+import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent
 NAV = ('index.html', 'highlights.html', 'publications.html', 'cv.html', 'contact.html')
@@ -72,7 +76,10 @@ for name, page in pages.items():
     assert page.language == ('zh-CN' if chinese else 'en'), (name, 'Wrong document language')
     counterpart = ('../' if chinese else 'zh/') + basename
     assert page.switches == [counterpart], (name, 'Language switch must retain current page')
-    assert page.alternates == {'en': ('../' if chinese else '') + basename, 'zh-CN': ('' if chinese else 'zh/') + basename}, (name, 'Wrong language metadata')
+    expected_alternates = {'en': page_url(basename), 'zh-CN': page_url('zh/' + basename)}
+    if basename == 'highlight-template.html':
+        expected_alternates = {'en': ('../' if chinese else '') + basename, 'zh-CN': ('' if chinese else 'zh/') + basename}
+    assert page.alternates == expected_alternates, (name, 'Wrong language metadata')
     for link in page.links:
         assert link and link != '#', (name, 'Empty link')
         url = urlsplit(link)
@@ -100,3 +107,19 @@ for prefix in ('', 'zh/'):
     assert 'meiyu-2020.html' in pages[prefix + 'southwest-rainfall-2020.html'].links
     assert all(article in pages[prefix + 'compound-2020.html'].links for article in ARTICLES[:2])
 print(f'PASS: {len(pages)} pages, bilingual navigation, language pairs, article paths, assets and anchors.')
+ns = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+listed = [node.text for node in ET.parse(ROOT / 'sitemap.xml').findall('s:url/s:loc', ns)]
+expected = {page_url(name) for name in PAGES if Path(name).name not in ('research.html', 'highlight-template.html')}
+assert len(listed) == len(set(listed)) and set(listed) == expected, 'Sitemap must list every indexable page once'
+for name in PAGES:
+    if Path(name).name == 'highlight-template.html':
+        continue
+    source = (ROOT / name).read_text(encoding='utf-8')
+    assert source.count(f'<link rel="canonical" href="{page_url(name)}">') == 1
+    if Path(name).name != 'research.html':
+        assert 'noindex' not in source
+    if Path(name).name == 'index.html':
+        data = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', source, re.S)[1])
+        assert data['@type'] == 'ProfilePage' and data['mainEntity']['@type'] == 'Person'
+assert 'Sitemap: ' + page_url('sitemap.xml') in (ROOT / 'robots.txt').read_text(encoding='utf-8')
+print('PASS: canonical URLs, bilingual profile metadata, robots.txt and sitemap.')

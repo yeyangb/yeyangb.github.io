@@ -65,7 +65,7 @@ jobs:
           for source in Path('.').glob('*.html'):
               if source.name != 'highlight-template.html':
                   shutil.copy2(source, target / source.name)
-          for name in ('styles.css', 'theme.js', 'article-editor.js', 'favicon.svg'):
+          for name in ('styles.css', 'theme.js', 'article-editor.js', 'favicon.svg', 'robots.txt', 'sitemap.xml'):
               shutil.copy2(name, target / name)
           shutil.copytree('zh', target / 'zh', ignore=shutil.ignore_patterns('highlight-template.html'))
           shutil.copytree('assets', target / 'assets')

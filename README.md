@@ -79,7 +79,9 @@
 - 中文：https://yeyangb.github.io/zh/
 - 仓库：https://github.com/yeyangb/yeyangb.github.io
 
-HTTPS 已开启，Scholar 更新已在 GitHub Actions 上成功运行。自定义域名尚未绑定。
+原 GitHub Pages 地址已启用 HTTPS，Scholar 更新已在 GitHub Actions 上成功运行。
+
+yangboye.com 已于 2026-09-27 绑定，阿里云解析和 GitHub DNS 检查均已通过，中英文 HTTP 页面已验证可访问。自定义域名的 HTTPS 仍待 GitHub 签发证书，完成后需在仓库 Settings → Pages 开启 Enforce HTTPS。
 
 ## GitHub Pages 与引用统计自动更新
 
@@ -99,3 +101,28 @@ Google Scholar 可能限制来自 GitHub 的访问；遇到验证页面、访问
 本地更新：`python scripts/update_scholar.py`。离线检查：`python check_scholar.py`。请勿手动编辑论文页 `scholar-stats` 标记之间的内容，这一部分会在下次更新时重新生成。
 
 发布包只包含网页、样式、脚本、图标和 `assets/`，不发布 `tmp/`、`original/`、维护文档、检查脚本和文章模板。参见 [GitHub Pages 自定义工作流说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。
+
+## 自定义域名解析
+
+注册平台为阿里云万网，DNS 保持 dns27.hichina.com / dns28.hichina.com。
+
+| 类型 | 主机记录 | 记录值 |
+| --- | --- | --- |
+| A | @ | 185.199.108.153 |
+| A | @ | 185.199.109.153 |
+| A | @ | 185.199.110.153 |
+| A | @ | 185.199.111.153 |
+| CNAME | www | yeyangb.github.io |
+
+线路为默认，TTL 为 600 秒。GitHub Pages 的 Custom domain 设置为 yangboye.com；发布方式为 GitHub Actions，无需添加 CNAME 文件。
+
+## 搜索引擎收录
+
+首页标题与描述同时包含叶洋波 / Yangbo Ye，并通过 ProfilePage / Person 结构化数据关联复旦大学、ORCID、Google Scholar 和 ResearchGate。正式页面使用自引用 canonical 和完整地址的中英文 hreflang；网站地图收录 22 个正式页面，历史研究方向页不参与索引，模板不发布。
+
+- `robots.txt`：允许抓取，指向 `sitemap.xml`。
+- `sitemap.xml`：列出两种语言的首页、专栏列表、论文、履历、联系方式与六篇专栏。
+- 新增文章、修改首页简介或切换正式网址后，运行 `python scripts/update_search_metadata.py`，然后运行 `python check_site.py`。首页搜索描述在该脚本中维护。
+- 当前证书尚未就绪，搜索元数据暂用可访问的 `http://yangboye.com`。验证 HTTPS 正常后，将脚本中的 BASE 改为 `https://yangboye.com` 并重新生成发布；勿把无法访问的 HTTPS 地址提交为规范网址。
+
+下一步需由网站所有者登录 Google Search Console、Bing Webmaster Tools 和百度搜索资源平台完成站点验证，再提交网站地图与首页。尚未代用户提交或完成搜索平台验证；新增元数据不等于已被收录，不保证姓名搜索排名。
