@@ -73,11 +73,17 @@
 运行 `python check_site.py` 检查页面、导航和本地链接；运行 `node check_theme.cjs` 检查主题切换和存储不可用情况。
 运行 `node check_article_editor.cjs` 检查中英文阅读统计、文件写入及取消/失败处理。
 
-本版本尚未部署。
+网站已于 2026-09-27 发布至 GitHub Pages：
+
+- 英文：https://yeyangb.github.io/
+- 中文：https://yeyangb.github.io/zh/
+- 仓库：https://github.com/yeyangb/yeyangb.github.io
+
+HTTPS 已开启，Scholar 更新已在 GitHub Actions 上成功运行。自定义域名尚未绑定。
 
 ## GitHub Pages 与引用统计自动更新
 
-已准备 `.github/workflows/pages.yml`，上传到 GitHub 后才会运行。首次启用：
+`.github/workflows/pages.yml` 已在当前仓库启用。以下步骤供迁移仓库或重新配置时参考：
 
 1. 将网站文件、`scripts/`、检查脚本及 `.github/workflows/pages.yml` 放入仓库的 `main` 分支。若默认分支不是 `main`，修改工作流的 `push.branches`。
 2. 在仓库 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。
