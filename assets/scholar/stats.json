@@ -1,10 +1,10 @@
 {
   "source": "https://scholar.google.com/citations?user=EZSfJd0AAAAJ&hl=en",
-  "updated": "2026-10-09",
+  "updated": "2026-11-13",
   "since": 2021,
   "citations": [
-    352,
-    348
+    363,
+    359
   ],
   "h_index": [
     7,
@@ -41,7 +41,7 @@
     },
     {
       "year": 2026,
-      "citations": 111
+      "citations": 122
     }
   ]
 }
